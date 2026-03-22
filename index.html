@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Focus — Painel de Produtividade</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<style>
+  :root {
+    --surface:           #041329;
+    --surface-low:       #0d1c32;
+    --surface-container: #112036;
+    --surface-high:      #1c2a41;
+    --surface-highest:   #27354c;
+    --surface-bright:    #2c3951;
+    --primary:           #00dfc1;
+    --primary-fixed:     #26fedc;
+    --primary-container: #001d18;
+    --on-primary:        #00382f;
+    --on-primary-cont:   #00937e;
+    --secondary:         #b6c6ed;
+    --secondary-cont:    #374767;
+    --on-secondary-cont: #a5b5db;
+    --tertiary:          #38debb;
+    --on-surface:        #d6e3ff;
+    --on-surface-var:    #c5c6cd;
+    --outline-var:       rgba(143,144,151,0.15);
+    --error-cont:        #93000a;
+    --on-error-cont:     #ffdad6;
+    --font-headline:     'Manrope', sans-serif;
+    --font-body:         'Inter', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--surface);
+    color: var(--on-surface);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-size: 20px;
+    line-height: 1;
+    vertical-align: middle;
+  }
+  .mf { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* ---- SCROLLBAR ---- */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface-highest); border-radius: 99px; }
+
+  /* ---- LAYOUT ---- */
+  .app-shell {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    grid-template-rows: 100vh;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ---- SIDEBAR ---- */
+  .sidebar {
+    background: rgba(44,57,81,0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--outline-var);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    gap: 6px;
+    z-index: 50;
+  }
+  .sidebar-logo {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--on-primary-cont) 100%);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--on-primary);
+    font-size: 18px;
+    font-family: var(--font-headline);
+    font-weight: 800;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+  .nav-item {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--on-surface-var);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--surface-highest); color: var(--on-surface); }
+  .nav-item.active {
+    background: rgba(0,223,193,0.12);
+    color: var(--primary);
+  }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -1px; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 20px;
+    background: var(--primary);
+    border-radius: 0 3px 3px 0;
+  }
+  .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface-highest);
+    border: 2px solid var(--outline-var);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; font-family: var(--font-headline);
+    color: var(--primary); cursor: pointer;
+    overflow: hidden;
+  }
+
+  /* ---- MAIN CONTENT ---- */
+  .main-content {
+    display: grid;
+    grid-template-rows: 56px 1fr;
+    overflow: hidden;
+  }
+
+  /* ---- TOPBAR ---- */
+  .topbar {
+    background: rgba(4,19,41,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--outline-var);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    z-index: 40;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 20px; }
+  .topbar-section-title {
+    font-family: var(--font-headline);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .topbar-date {
+    font-size: 12px;
+    color: var(--on-surface-var);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: transparent; border: none;
+    color: var(--on-surface-var);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .icon-btn:hover { background: var(--surface-highest); color: var(--on-surface); }
+  .notif-badge {
+    position: relative;
+  }
+  .notif-badge::after {
+    content: '';
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 6px; height: 6px;
+    background: var(--primary);
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+  }
+
+  /* ---- SCROLL AREA ---- */
+  .scroll-area {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 28px 28px 40px;
+  }
+
+  /* ---- SECTIONS ---- */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: var(--surface-low);
+    border-radius: 20px;
+    padding: 24px;
+  }
+  .card-sm { padding: 18px 20px; }
+  .card-title {
+    font-family: var(--font-headline);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--on-surface-var);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .metric-big {
+    font-family: var(--font-headline);
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--on-surface);
+    line-height: 1;
+  }
+  .metric-label {
+    font-size: 11px;
+    color: var(--on-surface-var);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+  }
+
+  /* ---- GRADIENT BUTTON ---- */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--on-primary-cont) 100%);
+    color: var(--on-primary);
+    border: none;
+    border-radius: 99px;
+    padding: 10px 22px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+    white-space: nowrap;
+  }
+  .btn-primary:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(0,223,193,0.3);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--on-surface-var);
+    border: 1px solid var(--outline-var);
+    border-radius: 99px;
+    padding: 9px 18px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-ghost:hover { border-color: rgba(143,144,151,0.35); color: var(--on-surface); background: var(--surface-highest); }
+  .btn-tertiary {
+    background: none; border: none;
+    color: var(--primary);
+    font-size: 11px; font-weight: 700;
+    font-family: var(--font-body);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-tertiary:hover { opacity: 0.7; }
+
+  /* ---- TAG ---- */
+  .tag {
+    display: inline-flex; align-items: center;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 99px;
+  }
+  .tag-mint { background: rgba(0,223,193,0.12); color: var(--primary); }
+  .tag-blue { background: rgba(181,198,237,0.12); color: var(--secondary); }
+  .tag-teal { background: rgba(56,222,187,0.12); color: var(--tertiary); }
+  .tag-red { background: rgba(255,180,171,0.12); color: #ffb4ab; }
+  .tag-gray { background: var(--surface-highest); color: var(--on-surface-var); }
+
+  /* ========== HOME SECTION ========== */
+  .home-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 16px;
+  }
+  .home-left { display: flex; flex-direction: column; gap: 16px; }
+  .home-right { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Milestone banner */
+  .milestone-banner {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--on-primary-cont) 100%);
+    border-radius: 20px;
+    padding: 20px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; overflow: hidden;
+    box-shadow: 0 0 50px rgba(0,223,193,0.15);
+  }
+  .milestone-banner::before {
+    content: '';
+    position: absolute; right: -30px; top: -30px;
+    width: 160px; height: 160px;
+    background: rgba(38,254,220,0.15);
+    border-radius: 50%;
+    filter: blur(30px);
+  }
+  .milestone-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--on-primary);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .milestone-icon .material-symbols-outlined { color: var(--on-primary-cont); font-size: 24px; }
+  .milestone-info { flex: 1; margin: 0 16px; }
+  .milestone-eyebrow {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(0,56,47,0.7);
+    margin-bottom: 4px;
+  }
+  .milestone-title {
+    font-family: var(--font-headline); font-weight: 800;
+    font-size: 16px; color: var(--on-primary); line-height: 1.2;
+  }
+
+  /* Performance chart */
+  .perf-card { position: relative; }
+  .perf-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+  .perf-title { font-family: var(--font-headline); font-weight: 800; font-size: 22px; letter-spacing: -0.02em; }
+  .perf-sub { font-size: 12px; color: var(--on-surface-var); margin-top: 3px; }
+  .chart-bars {
+    display: flex; align-items: flex-end;
+    gap: 10px; height: 140px;
+  }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
+  .bar-track {
+    flex: 1; width: 100%; border-radius: 8px;
+    background: var(--surface-highest);
+    position: relative; overflow: hidden;
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .bar-track:hover { transform: scaleX(1.05); }
+  .bar-fill {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    border-radius: 8px;
+    transition: height 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .bar-fill.primary { background: linear-gradient(180deg, var(--primary) 0%, var(--on-primary-cont) 100%); }
+  .bar-fill.secondary { background: var(--secondary-cont); }
+  .bar-fill.active { background: linear-gradient(180deg, var(--primary) 0%, var(--on-primary-cont) 100%); box-shadow: 0 0 20px rgba(0,223,193,0.4); }
+  .bar-label { font-size: 10px; color: var(--on-surface-var); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+
+  /* Metrics strip */
+  .metrics-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .metric-card {
+    background: var(--surface-container);
+    border-radius: 16px; padding: 18px;
+  }
+  .metric-card .metric-big { font-size: 28px; }
+
+  /* Mini donut */
+  .donut-card { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .donut-wrap { position: relative; width: 130px; height: 130px; flex-shrink: 0; }
+  .donut-center {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .donut-pct { font-family: var(--font-headline); font-size: 28px; font-weight: 800; color: var(--on-surface); }
+  .donut-sub { font-size: 9px; color: var(--on-surface-var); text-transform: uppercase; letter-spacing: 0.08em; }
+  .donut-legend { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .donut-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--on-surface-var); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Streak card */
+  .streak-card { display: flex; flex-direction: column; }
+  .streak-num { font-family: var(--font-headline); font-size: 52px; font-weight: 800; color: var(--primary); letter-spacing: -0.03em; line-height: 1; }
+  .week-dots { display: flex; gap: 6px; margin-top: 12px; }
+  .week-dot {
+    width: 28px; height: 8px; border-radius: 99px;
+    background: var(--surface-highest);
+  }
+  .week-dot.done { background: var(--primary); box-shadow: 0 0 8px rgba(0,223,193,0.4); }
+  .week-dot.today { background: linear-gradient(90deg, var(--primary), var(--primary-fixed)); animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100%{ box-shadow: 0 0 6px rgba(0,223,193,0.4); } 50%{ box-shadow: 0 0 14px rgba(0,223,193,0.7); } }
+
+  /* Today events */
+  .event-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; border-radius: 12px;
+    background: var(--surface-container);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .event-item:hover { background: var(--surface-high); }
+  .event-time { font-size: 11px; color: var(--on-surface-var); font-weight: 500; min-width: 38px; margin-top: 1px; }
+  .event-stripe { width: 3px; border-radius: 99px; min-height: 38px; flex-shrink: 0; }
+  .event-name { font-size: 13px; font-weight: 600; }
+  .event-loc { font-size: 11px; color: var(--on-surface-var); margin-top: 2px; }
+
+  /* ========== CALENDAR SECTION ========== */
+  .cal-grid-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .cal-month { font-family: var(--font-headline); font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: 8px; }
+  .cal-weekday { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--on-surface-var); font-weight: 600; padding: 6px 0; }
+  .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    padding: 6px 4px;
+    border-radius: 12px;
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .cal-day:hover { background: var(--surface-highest); }
+  .cal-day.other-month { opacity: 0.3; }
+  .cal-day.today { background: rgba(0,223,193,0.1); color: var(--primary); font-weight: 700; }
+  .cal-day.selected { background: var(--primary) !important; color: var(--on-primary) !important; font-weight: 700; }
+  .cal-day-num { line-height: 1.2; }
+  .cal-dots { display: flex; gap: 2px; margin-top: 3px; flex-wrap: wrap; justify-content: center; }
+  .cal-dot-ev { width: 4px; height: 4px; border-radius: 50%; }
+
+  /* ========== TASKS SECTION ========== */
+  .tasks-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .task-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px; border-radius: 14px;
+    background: var(--surface-container);
+    transition: all 0.15s; cursor: pointer;
+  }
+  .task-item:hover { background: var(--surface-high); }
+  .task-item.done { opacity: 0.45; }
+  .task-check-btn {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1.5px solid rgba(143,144,151,0.35);
+    flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    background: transparent;
+    cursor: pointer;
+  }
+  .task-item.done .task-check-btn {
+    background: var(--primary); border-color: var(--primary);
+  }
+  .task-check-btn .material-symbols-outlined { font-size: 12px; color: var(--on-primary); display: none; }
+  .task-item.done .task-check-btn .material-symbols-outlined { display: block; }
+  .task-body { flex: 1; }
+  .task-name { font-size: 14px; font-weight: 500; }
+  .task-item.done .task-name { text-decoration: line-through; color: var(--on-surface-var); }
+  .task-meta { font-size: 11px; color: var(--on-surface-var); margin-top: 3px; }
+  .task-priority { width: 4px; border-radius: 99px; min-height: 40px; flex-shrink: 0; }
+
+  .add-task-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-radius: 14px;
+    border: 1px solid var(--outline-var);
+    cursor: pointer; font-size: 13px; color: var(--on-surface-var);
+    transition: all 0.15s; margin-top: 8px;
+  }
+  .add-task-row:hover { border-color: rgba(143,144,151,0.3); color: var(--on-surface); background: var(--surface-container); }
+
+  .task-form { background: var(--surface-container); border-radius: 14px; padding: 14px 16px; margin-top: 8px; display: none; }
+  .task-form.open { display: block; }
+  .t-input {
+    width: 100%; background: var(--surface-highest);
+    border: 1px solid transparent;
+    border-radius: 10px; padding: 9px 12px;
+    color: var(--on-surface); font-family: var(--font-body);
+    font-size: 13px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .t-input:focus { border-color: rgba(0,223,193,0.4); box-shadow: 0 0 0 2px rgba(0,223,193,0.1); }
+  .t-input::placeholder { color: var(--on-surface-var); }
+  .t-row { display: flex; gap: 8px; margin-top: 8px; }
+  .t-select { flex: 1; }
+
+  /* ========== PRODUCTIVITY SECTION ========== */
+  .prod-layout { display: flex; flex-direction: column; gap: 16px; }
+  .prod-top { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .prod-bot { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* Focus intensity */
+  .intensity-bar { height: 8px; background: rgba(0,223,193,0.15); border-radius: 99px; overflow: hidden; margin-top: 16px; }
+  .intensity-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--on-primary-cont), var(--primary));
+    position: relative;
+  }
+  .intensity-glow {
+    position: absolute; right: 0; top: 0; height: 100%; width: 20px;
+    background: var(--primary-fixed); filter: blur(6px);
+  }
+
+  /* Radar / area bars */
+  .area-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .area-bar-label { font-size: 12px; font-weight: 500; min-width: 120px; color: var(--on-surface-var); }
+  .area-bar-track { flex: 1; height: 6px; background: var(--surface-highest); border-radius: 99px; overflow: hidden; }
+  .area-bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+  .area-bar-pct { font-size: 11px; color: var(--on-surface-var); min-width: 32px; text-align: right; font-weight: 600; }
+
+  /* Focus register buttons */
+  .focus-btn {
+    background: rgba(0,223,193,0.08);
+    border: 1px solid rgba(0,223,193,0.2);
+    color: var(--primary);
+    border-radius: 10px; padding: 9px 14px;
+    font-family: var(--font-body); font-weight: 600; font-size: 12px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .focus-btn:hover { background: rgba(0,223,193,0.16); box-shadow: 0 0 12px rgba(0,223,193,0.2); }
+
+  /* Progress ring */
+  .ring-wrap { position: relative; display: inline-flex; }
+  .ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+  .ring-val { font-family: var(--font-headline); font-size: 22px; font-weight: 800; color: var(--on-surface); }
+  .ring-sub { font-size: 9px; color: var(--on-surface-var); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(4,19,41,0.7);
+    backdrop-filter: blur(10px);
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface-high);
+    border-radius: 20px; padding: 28px;
+    width: 380px; max-width: 95vw;
+    border: 1px solid var(--outline-var);
+  }
+  .modal-title { font-family: var(--font-headline); font-size: 18px; font-weight: 800; margin-bottom: 20px; }
+  .form-label { font-size: 11px; color: var(--on-surface-var); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 5px; display: block; }
+  .form-group { margin-bottom: 14px; }
+  .form-row { display: flex; gap: 10px; }
+  .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+  /* ANIMATIONS */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .section.active > * { animation: fadeSlideUp 0.3s ease forwards; }
+  .section.active > *:nth-child(2) { animation-delay: 0.05s; }
+  .section.active > *:nth-child(3) { animation-delay: 0.1s; }
+
+  /* TOOLTIP */
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute; left: 72px; top: 50%;
+    transform: translateY(-50%);
+    background: var(--surface-highest);
+    color: var(--on-surface); font-size: 12px; font-weight: 500;
+    padding: 5px 10px; border-radius: 8px; white-space: nowrap;
+    border: 1px solid var(--outline-var);
+    z-index: 99; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">F</div>
+    <div class="nav-item active" data-section="home" data-tip="Visão Geral">
+      <span class="material-symbols-outlined mf">space_dashboard</span>
+    </div>
+    <div class="nav-item" data-section="calendar" data-tip="Calendário">
+      <span class="material-symbols-outlined">calendar_month</span>
+    </div>
+    <div class="nav-item" data-section="tasks" data-tip="Tarefas">
+      <span class="material-symbols-outlined">checklist</span>
+    </div>
+    <div class="nav-item" data-section="productivity" data-tip="Produtividade">
+      <span class="material-symbols-outlined">insights</span>
+    </div>
+    <div class="sidebar-bottom">
+      <button class="icon-btn" style="width:36px;height:36px;border-radius:10px;" title="Configurações">
+        <span class="material-symbols-outlined" style="font-size:18px;">settings</span>
+      </button>
+      <div class="avatar">VC</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-section-title" id="page-title">Visão Geral</div>
+        <div class="topbar-date" id="topbar-date"></div>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn notif-badge" title="Notificações">
+          <span class="material-symbols-outlined" style="font-size:18px;">notifications</span>
+        </button>
+        <button class="icon-btn" title="Buscar">
+          <span class="material-symbols-outlined" style="font-size:18px;">search</span>
+        </button>
+        <button class="btn-primary" id="quick-add-btn" style="padding:7px 16px;font-size:12px;">
+          <span class="material-symbols-outlined" style="font-size:15px;">add</span>
+          Novo
+        </button>
+      </div>
+    </header>
+
+    <!-- SCROLL AREA -->
+    <div class="scroll-area">
+
+      <!-- ===== HOME ===== -->
+      <div class="section active" id="sec-home">
+        <!-- Milestone Banner -->
+        <div class="milestone-banner" style="margin-bottom:20px;">
+          <div class="milestone-icon">
+            <span class="material-symbols-outlined mf" style="color:var(--on-primary-cont);font-size:26px;">workspace_premium</span>
+          </div>
+          <div class="milestone-info">
+            <div class="milestone-eyebrow">Marco pessoal</div>
+            <div class="milestone-title" id="milestone-text">3 dias seguidos com 8h+ de foco profundo!</div>
+          </div>
+          <button class="btn-primary" style="background:var(--on-primary);color:var(--on-primary-cont);flex-shrink:0;font-size:12px;padding:9px 18px;">
+            Compartilhar
+          </button>
+        </div>
+
+        <div class="home-grid">
+          <!-- LEFT COLUMN -->
+          <div class="home-left">
+            <!-- Performance Chart -->
+            <div class="card perf-card">
+              <div class="perf-header">
+                <div>
+                  <div class="perf-title">Performance da Semana</div>
+                  <div class="perf-sub">Score de produtividade — últimos 7 dias</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <span class="tag tag-mint"><span class="dot" style="width:6px;height:6px;background:var(--primary);margin-right:4px;"></span>Foco</span>
+                </div>
+              </div>
+              <div class="chart-bars" id="home-chart">
+                <!-- injected by JS -->
+              </div>
+            </div>
+
+            <!-- Metrics strip -->
+            <div class="metrics-strip">
+              <div class="metric-card">
+                <div class="card-title">Tarefas hoje</div>
+                <div class="metric-big" id="m-tasks">0/0</div>
+                <div class="metric-label">concluídas</div>
+                <div style="height:4px;background:var(--surface-highest);border-radius:99px;margin-top:12px;overflow:hidden;">
+                  <div id="m-tasks-bar" style="height:100%;background:linear-gradient(90deg,var(--primary),var(--on-primary-cont));border-radius:99px;width:0%;transition:width 0.5s;"></div>
+                </div>
+              </div>
+              <div class="metric-card">
+                <div class="card-title">Foco hoje</div>
+                <div class="metric-big" id="m-focus">0h</div>
+                <div class="metric-label">horas registradas</div>
+                <div style="height:4px;background:var(--surface-highest);border-radius:99px;margin-top:12px;overflow:hidden;">
+                  <div id="m-focus-bar" style="height:100%;background:linear-gradient(90deg,var(--secondary),#7fa0d0);border-radius:99px;width:0%;transition:width 0.5s;"></div>
+                </div>
+              </div>
+              <div class="metric-card">
+                <div class="card-title">Score geral</div>
+                <div class="metric-big" id="m-score" style="color:var(--primary);">–%</div>
+                <div class="metric-label">esta semana</div>
+                <div style="height:4px;background:var(--surface-highest);border-radius:99px;margin-top:12px;overflow:hidden;">
+                  <div id="m-score-bar" style="height:100%;background:linear-gradient(90deg,var(--tertiary),var(--primary));border-radius:99px;width:0%;transition:width 0.5s;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Today's events -->
+            <div class="card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <div style="font-family:var(--font-headline);font-weight:700;font-size:16px;">Compromissos de hoje</div>
+                <button class="btn-tertiary" onclick="switchSection('calendar')">Ver calendário</button>
+              </div>
+              <div id="home-events" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN -->
+          <div class="home-right">
+            <!-- Donut / Time allocation -->
+            <div class="card donut-card">
+              <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:12px;">
+                <div style="font-family:var(--font-headline);font-weight:700;font-size:15px;">Alocação de tempo</div>
+              </div>
+              <div class="donut-wrap">
+                <svg viewBox="0 0 130 130" width="130" height="130" style="transform:rotate(-90deg);">
+                  <circle cx="65" cy="65" r="52" fill="transparent" stroke="var(--surface-highest)" stroke-width="10"/>
+                  <circle id="donut-work" cx="65" cy="65" r="52" fill="transparent" stroke="var(--primary)" stroke-width="10" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="82"/>
+                  <circle id="donut-learn" cx="65" cy="65" r="52" fill="transparent" stroke="var(--secondary)" stroke-width="10" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="245"/>
+                  <circle id="donut-health" cx="65" cy="65" r="52" fill="transparent" stroke="var(--tertiary)" stroke-width="10" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="294"/>
+                </svg>
+                <div class="donut-center">
+                  <div class="donut-pct" id="donut-pct">72%</div>
+                  <div class="donut-sub">Ótimo</div>
+                </div>
+              </div>
+              <div class="donut-legend">
+                <div class="donut-legend-item"><span class="dot" style="background:var(--primary)"></span>Trabalho</div>
+                <div class="donut-legend-item"><span class="dot" style="background:var(--secondary)"></span>Aprendizado</div>
+                <div class="donut-legend-item"><span class="dot" style="background:var(--tertiary)"></span>Saúde</div>
+                <div class="donut-legend-item"><span class="dot" style="background:var(--surface-highest)"></span>Pessoal</div>
+              </div>
+            </div>
+
+            <!-- Streak card -->
+            <div class="card streak-card">
+              <div class="card-title">Streak de foco</div>
+              <div class="streak-num" id="home-streak">5</div>
+              <div style="font-size:12px;color:var(--on-surface-var);margin-top:4px;">dias seguidos</div>
+              <div class="week-dots" id="week-dots"></div>
+            </div>
+
+            <!-- Priority tasks -->
+            <div class="card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <div style="font-family:var(--font-headline);font-weight:700;font-size:15px;">Prioridades</div>
+                <button class="btn-tertiary" onclick="switchSection('tasks')">Ver todas</button>
+              </div>
+              <div id="home-priority-tasks" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CALENDAR ===== -->
+      <div class="section" id="sec-calendar">
+        <div class="cal-grid-layout">
+          <div class="card">
+            <div class="cal-nav">
+              <div class="cal-month" id="cal-month-label"></div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn-ghost" id="cal-prev" style="padding:7px 12px;border-radius:12px;">
+                  <span class="material-symbols-outlined" style="font-size:16px;">chevron_left</span>
+                </button>
+                <button class="btn-ghost" id="cal-next" style="padding:7px 12px;border-radius:12px;">
+                  <span class="material-symbols-outlined" style="font-size:16px;">chevron_right</span>
+                </button>
+              </div>
+            </div>
+            <div class="cal-weekdays" id="cal-weekdays"></div>
+            <div class="cal-days" id="cal-days"></div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <div style="font-family:var(--font-headline);font-weight:700;font-size:15px;" id="cal-sel-label">Hoje</div>
+                <button class="btn-primary" id="add-event-btn" style="font-size:12px;padding:8px 14px;">
+                  <span class="material-symbols-outlined" style="font-size:14px;">add</span> Evento
+                </button>
+              </div>
+              <div id="cal-events" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TASKS ===== -->
+      <div class="section" id="sec-tasks">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:var(--font-headline);font-size:22px;font-weight:800;letter-spacing:-0.02em;">Minhas Tarefas</div>
+            <div style="font-size:12px;color:var(--on-surface-var);margin-top:3px;" id="tasks-summary"></div>
+          </div>
+          <button class="btn-primary" id="open-add-task">
+            <span class="material-symbols-outlined" style="font-size:15px;">add</span> Nova tarefa
+          </button>
+        </div>
+        <div class="tasks-layout">
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <div style="font-family:var(--font-headline);font-weight:700;font-size:15px;">Pendentes</div>
+              <span class="tag tag-red" id="pending-tag">0</span>
+            </div>
+            <div id="todo-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+            <div class="task-form" id="inline-task-form">
+              <input class="t-input" id="new-task-text" placeholder="Título da tarefa…" style="margin-bottom:0;"/>
+              <div class="t-row">
+                <select class="t-input t-select" id="new-task-priority">
+                  <option value="alta">Alta prioridade</option>
+                  <option value="media" selected>Média</option>
+                  <option value="baixa">Baixa</option>
+                </select>
+                <input class="t-input" id="new-task-proj" placeholder="Projeto" style="flex:1.2;"/>
+              </div>
+              <div class="t-row" style="margin-top:4px;justify-content:flex-end;">
+                <button class="btn-ghost" id="cancel-task-form" style="font-size:12px;padding:7px 14px;">Cancelar</button>
+                <button class="btn-primary" id="save-task-btn" style="font-size:12px;padding:8px 16px;">Salvar</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <div style="font-family:var(--font-headline);font-weight:700;font-size:15px;">Concluídas</div>
+              <span class="tag tag-mint" id="done-tag">0</span>
+            </div>
+            <div id="done-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PRODUCTIVITY ===== -->
+      <div class="section" id="sec-productivity">
+        <div class="prod-layout">
+          <div class="prod-top">
+            <!-- Weekly perf chart big -->
+            <div class="card">
+              <div class="perf-header">
+                <div>
+                  <div class="perf-title">Velocidade de Performance</div>
+                  <div class="perf-sub">Horas de foco por dia esta semana</div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <span class="tag tag-mint">Semana atual</span>
+                </div>
+              </div>
+              <div class="chart-bars" id="prod-chart" style="height:160px;"></div>
+            </div>
+
+            <!-- Focus intensity -->
+            <div class="card" style="background:var(--primary-container);position:relative;overflow:hidden;">
+              <div style="position:absolute;top:-10px;right:-10px;opacity:0.08;pointer-events:none;">
+                <span class="material-symbols-outlined" style="font-size:120px;color:var(--primary);">bolt</span>
+              </div>
+              <div class="card-title" style="color:rgba(0,223,193,0.6);">Intensidade de foco</div>
+              <div style="font-family:var(--font-headline);font-size:34px;font-weight:800;color:var(--primary-fixed);letter-spacing:-0.02em;line-height:1;margin-top:4px;" id="prod-score-big">–%</div>
+              <div style="font-size:12px;color:var(--on-primary-cont);margin-top:6px;margin-bottom:20px;line-height:1.5;">Pico de produtividade entre<br/><strong style="color:var(--primary);">10h00</strong> e <strong style="color:var(--primary);">13h00</strong></div>
+              <div class="intensity-bar">
+                <div class="intensity-fill" id="intensity-fill" style="width:0%;">
+                  <div class="intensity-glow"></div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:6px;">
+                <span style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(0,223,193,0.4);">Baixo</span>
+                <span style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:var(--primary);" id="intensity-label">Pico</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="prod-bot">
+            <!-- Top areas -->
+            <div class="card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                <div style="font-family:var(--font-headline);font-weight:700;font-size:15px;">Áreas de foco</div>
+                <span class="tag tag-gray">Esta semana</span>
+              </div>
+              <div id="area-bars"></div>
+            </div>
+
+            <!-- Register focus + ring -->
+            <div class="card">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+                <div style="flex:1;">
+                  <div style="font-family:var(--font-headline);font-weight:700;font-size:15px;margin-bottom:4px;">Registrar Foco</div>
+                  <div style="font-size:12px;color:var(--on-surface-var);margin-bottom:16px;">Hoje: <strong style="color:var(--primary);" id="focus-today-label">0h</strong></div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="focus-btn" data-h="0.5">+30min</button>
+                    <button class="focus-btn" data-h="1">+1h</button>
+                    <button class="focus-btn" data-h="2">+2h</button>
+                    <button class="focus-btn" data-h="4">+4h</button>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                  <div class="ring-wrap">
+                    <svg viewBox="0 0 90 90" width="90" height="90" style="transform:rotate(-90deg);">
+                      <circle cx="45" cy="45" r="36" fill="transparent" stroke="var(--surface-highest)" stroke-width="6"/>
+                      <circle id="ring-circle" cx="45" cy="45" r="36" fill="transparent" stroke="var(--primary)" stroke-width="6" stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226"
+                        style="transition:stroke-dashoffset 0.6s ease;filter:drop-shadow(0 0 6px rgba(0,223,193,0.5));"/>
+                    </svg>
+                    <div class="ring-center">
+                      <div class="ring-val" id="ring-pct">0%</div>
+                      <div class="ring-sub">Meta</div>
+                    </div>
+                  </div>
+                  <div style="font-size:10px;color:var(--on-surface-var);">de 8h/dia</div>
+                </div>
+              </div>
+
+              <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--outline-var);">
+                <div style="font-size:12px;color:var(--on-surface-var);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">Tarefas concluídas</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                  <div style="background:var(--surface-container);border-radius:12px;padding:12px;">
+                    <div style="font-family:var(--font-headline);font-size:22px;font-weight:800;" id="prod-done-count">0</div>
+                    <div style="font-size:10px;color:var(--on-surface-var);margin-top:2px;text-transform:uppercase;letter-spacing:0.05em;">Total</div>
+                  </div>
+                  <div style="background:var(--surface-container);border-radius:12px;padding:12px;">
+                    <div style="font-family:var(--font-headline);font-size:22px;font-weight:800;color:var(--tertiary);" id="prod-rate">–%</div>
+                    <div style="font-size:10px;color:var(--on-surface-var);margin-top:2px;text-transform:uppercase;letter-spacing:0.05em;">Taxa</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /scroll-area -->
+  </div><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<!-- EVENT MODAL -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <div class="modal-title">Novo Evento</div>
+    <div class="form-group">
+      <label class="form-label">Título</label>
+      <input class="t-input" id="ev-title" placeholder="Ex: Reunião de equipe"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Horário</label>
+        <input class="t-input" id="ev-time" type="time" value="09:00"/>
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Cor</label>
+        <select class="t-input" id="ev-color">
+          <option value="#00dfc1">Mint</option>
+          <option value="#b6c6ed">Azul</option>
+          <option value="#38debb">Teal</option>
+          <option value="#EF9F27">Âmbar</option>
+          <option value="#ffb4ab">Coral</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Local / notas</label>
+      <input class="t-input" id="ev-loc" placeholder="Opcional"/>
+    </div>
+    <div class="btn-row">
+      <button class="btn-ghost" id="close-event-modal">Cancelar</button>
+      <button class="btn-primary" id="save-event-btn">Salvar evento</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const today = new Date();
+let calYear = today.getFullYear(), calMonth = today.getMonth();
+let selDate = new Date(today);
+
+const dayNames  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+let state = {
+  tasks: [
+    { id:1, text:'Revisar relatório Q1', priority:'alta',  project:'Trabalho', done:false },
+    { id:2, text:'Preparar apresentação para o cliente', priority:'alta', project:'Trabalho', done:false },
+    { id:3, text:'Responder e-mails pendentes', priority:'media', project:'Admin', done:true },
+    { id:4, text:'Atualizar planilha de gastos', priority:'baixa', project:'Pessoal', done:false },
+    { id:5, text:'Revisar documentação técnica', priority:'media', project:'Dev', done:false },
+  ],
+  events: {
+    [today.toDateString()]: [
+      { title:'Stand-up diário', time:'09:00', color:'#00dfc1', loc:'Google Meet' },
+      { title:'Revisão de produto', time:'14:00', color:'#b6c6ed', loc:'Sala 3' },
+      { title:'Review semanal',    time:'17:00', color:'#38debb', loc:'' },
+    ]
+  },
+  focusHours: [1.5, 3.5, 6, 4, 7, 0, 0],
+  todayFocus: 0,
+  streak: 5,
+  nextId: 20
+};
+
+/* ---- UTILS ---- */
+function fmtLongDate(d) {
+  return d.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+function fmt12(d) {
+  return d.toLocaleDateString('pt-BR', { day:'numeric', month:'long' });
+}
+function calcScore() {
+  const done = state.tasks.filter(t=>t.done).length;
+  const tot  = state.tasks.length || 1;
+  const fp   = Math.min(100, state.todayFocus / 8 * 100);
+  return Math.round((done/tot*55) + (fp*0.45));
+}
+
+/* ---- INIT ---- */
+function init() {
+  document.getElementById('topbar-date').textContent = fmtLongDate(today)
+    .replace(/^\w/,c=>c.toUpperCase());
+  buildCal();
+  renderAll();
+  setupNav();
+  setupInteractions();
+  animateBars();
+}
+
+function renderAll() {
+  renderHome();
+  renderTasks();
+  renderProd();
+  renderCalView();
+}
+
+/* ---- NAV ---- */
+function switchSection(key) {
+  document.querySelectorAll('.nav-item').forEach(n=>{ n.classList.toggle('active', n.dataset.section===key); });
+  document.querySelectorAll('.section').forEach(s=>{ s.classList.toggle('active', s.id==='sec-'+key); });
+  const titles = { home:'Visão Geral', calendar:'Calendário', tasks:'Tarefas', productivity:'Produtividade' };
+  document.getElementById('page-title').textContent = titles[key] || '';
+}
+function setupNav() {
+  document.querySelectorAll('.nav-item[data-section]').forEach(el=>{
+    el.addEventListener('click',()=>switchSection(el.dataset.section));
+  });
+}
+
+/* ---- RENDER HOME ---- */
+function renderHome() {
+  const todayTasks = state.tasks;
+  const done  = todayTasks.filter(t=>t.done).length;
+  const total = todayTasks.length;
+  const score = calcScore();
+  const fp    = state.todayFocus;
+
+  document.getElementById('m-tasks').textContent  = done+'/'+total;
+  document.getElementById('m-tasks-bar').style.width = (total ? Math.round(done/total*100) : 0)+'%';
+
+  const fDisp = fp < 1 ? Math.round(fp*60)+'min' : fp.toFixed(1)+'h';
+  document.getElementById('m-focus').textContent   = fDisp;
+  document.getElementById('m-focus-bar').style.width = Math.min(100,Math.round(fp/8*100))+'%';
+
+  document.getElementById('m-score').textContent  = score+'%';
+  document.getElementById('m-score-bar').style.width = score+'%';
+
+  document.getElementById('home-streak').textContent = state.streak;
+  // week dots
+  const dots = document.getElementById('week-dots');
+  dots.innerHTML = '';
+  for(let i=0;i<7;i++){
+    const div = document.createElement('div');
+    div.className = 'week-dot';
+    const dayIdx = (today.getDay()+6)%7;
+    if(i < Math.min(state.streak,6) && i < dayIdx) div.classList.add('done');
+    if(i === dayIdx) div.classList.add('today');
+    dots.appendChild(div);
+  }
+
+  // Chart
+  buildBarChart('home-chart', state.focusHours, 120);
+
+  // Events
+  const evs = state.events[today.toDateString()] || [];
+  const evEl = document.getElementById('home-events');
+  if(!evs.length){ evEl.innerHTML='<div style="font-size:13px;color:var(--on-surface-var);padding:8px 0;">Nenhum compromisso hoje.</div>'; }
+  else evEl.innerHTML = evs.map(e=>`
+    <div class="event-item">
+      <div class="event-time">${e.time}</div>
+      <div class="event-stripe" style="background:${e.color};"></div>
+      <div><div class="event-name">${e.title}</div>${e.loc?`<div class="event-loc">${e.loc}</div>`:''}</div>
+    </div>`).join('');
+
+  // Priority tasks
+  const pri = state.tasks.filter(t=>!t.done&&t.priority==='alta').slice(0,3);
+  const ptEl = document.getElementById('home-priority-tasks');
+  const pColors = { alta:'#ffb4ab', media:'#00dfc1', baixa:'#38debb' };
+  ptEl.innerHTML = pri.map(t=>`
+    <div class="task-item" data-id="${t.id}">
+      <div class="task-priority" style="background:${pColors[t.priority]||'var(--surface-highest)'};"></div>
+      <div class="task-check-btn"><span class="material-symbols-outlined">check</span></div>
+      <div class="task-body"><div class="task-name">${t.text}</div><div class="task-meta">${t.project}</div></div>
+      <span class="tag tag-red" style="font-size:9px;">Alta</span>
+    </div>`).join('') || '<div style="font-size:13px;color:var(--on-surface-var);">Sem tarefas urgentes!</div>';
+  ptEl.querySelectorAll('.task-item').forEach(el=>el.addEventListener('click',()=>{ toggleTask(+el.dataset.id); renderAll(); }));
+}
+
+/* ---- BAR CHART ---- */
+function buildBarChart(id, data, height) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  const days = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  const max  = Math.max(...data, 1);
+  const todayIdx = (today.getDay()+6)%7;
+  el.innerHTML = days.map((d,i)=>{
+    const pct  = Math.round(data[i]/max*100);
+    const isTd = i===todayIdx;
+    return `
+    <div class="bar-col">
+      <div class="bar-track" style="height:${height}px;">
+        <div class="bar-fill ${isTd?'active':'secondary'}" style="height:${pct}%;"></div>
+      </div>
+      <span class="bar-label" style="${isTd?'color:var(--primary);':''}">${d}</span>
+    </div>`;
+  }).join('');
+}
+
+function animateBars() {
+  setTimeout(()=>{
+    document.querySelectorAll('.bar-fill').forEach(el=>{
+      const h = el.style.height;
+      el.style.height='0%';
+      setTimeout(()=>{ el.style.height=h; el.style.transition='height 0.6s cubic-bezier(0.34,1.56,0.64,1)'; },50);
+    });
+  },200);
+}
+
+/* ---- TASKS ---- */
+function renderTasks() {
+  const todo = state.tasks.filter(t=>!t.done);
+  const done = state.tasks.filter(t=>t.done);
+  document.getElementById('pending-tag').textContent = todo.length;
+  document.getElementById('done-tag').textContent    = done.length;
+  document.getElementById('tasks-summary').textContent = `${done.length} concluídas de ${state.tasks.length} tarefas`;
+
+  const pColors = { alta:'#ffb4ab', media:'var(--primary)', baixa:'var(--tertiary)' };
+  const pLabels = { alta:'Alta', media:'Média', baixa:'Baixa' };
+  const pTagCls = { alta:'tag-red', media:'tag-mint', baixa:'tag-teal' };
+
+  function taskHTML(t) {
+    return `<div class="task-item${t.done?' done':''}" data-id="${t.id}">
+      <div class="task-priority" style="background:${pColors[t.priority]};"></div>
+      <div class="task-check-btn"><span class="material-symbols-outlined">check</span></div>
+      <div class="task-body"><div class="task-name">${t.text}</div><div class="task-meta">${t.project||'Sem projeto'}</div></div>
+      <span class="tag ${pTagCls[t.priority]}" style="font-size:9px;">${pLabels[t.priority]}</span>
+    </div>`;
+  }
+  const todoEl = document.getElementById('todo-list');
+  todoEl.innerHTML = todo.map(taskHTML).join('') || '<div style="font-size:13px;color:var(--on-surface-var);padding:8px 0;">Tudo em dia!</div>';
+  todoEl.querySelectorAll('.task-item').forEach(el=>el.addEventListener('click',()=>{ toggleTask(+el.dataset.id); renderAll(); }));
+
+  const doneEl = document.getElementById('done-list');
+  doneEl.innerHTML = done.map(taskHTML).join('') || '<div style="font-size:13px;color:var(--on-surface-var);padding:8px 0;">Nenhuma ainda.</div>';
+  doneEl.querySelectorAll('.task-item').forEach(el=>el.addEventListener('click',()=>{ toggleTask(+el.dataset.id); renderAll(); }));
+}
+
+function toggleTask(id) {
+  const t = state.tasks.find(t=>t.id===id);
+  if(t){ t.done=!t.done; if(t.done) state.streak=Math.min(30,state.streak); }
+}
+
+/* ---- PRODUCTIVITY ---- */
+function renderProd() {
+  const score = calcScore();
+  document.getElementById('prod-score-big').textContent = score+'%';
+  document.getElementById('intensity-fill').style.width = score+'%';
+  document.getElementById('intensity-label').textContent = `Pico (${score}%)`;
+  buildBarChart('prod-chart', state.focusHours, 160);
+
+  const fh = state.todayFocus;
+  const fDisp = fh<1 ? Math.round(fh*60)+'min' : fh.toFixed(1)+'h';
+  document.getElementById('focus-today-label').textContent = fDisp;
+
+  // ring
+  const pct = Math.min(100, Math.round(fh/8*100));
+  document.getElementById('ring-pct').textContent = pct+'%';
+  const circum = 226;
+  document.getElementById('ring-circle').style.strokeDashoffset = circum - (circum*pct/100);
+
+  const done  = state.tasks.filter(t=>t.done).length;
+  const total = state.tasks.length || 1;
+  document.getElementById('prod-done-count').textContent = done;
+  document.getElementById('prod-rate').textContent = Math.round(done/total*100)+'%';
+
+  // Area bars
+  const areas = {};
+  state.tasks.forEach(t=>{ areas[t.project||'Geral'] = areas[t.project||'Geral']||{done:0,total:0}; areas[t.project||'Geral'].total++; if(t.done) areas[t.project||'Geral'].done++; });
+  const colors = ['var(--primary)','var(--secondary)','var(--tertiary)','#EF9F27','#ffb4ab'];
+  let ci=0;
+  document.getElementById('area-bars').innerHTML = Object.entries(areas).map(([name,{done,total}])=>{
+    const p=Math.round(done/total*100); const c=colors[ci++%colors.length];
+    return `<div class="area-bar-row">
+      <div class="area-bar-label">${name}</div>
+      <div class="area-bar-track"><div class="area-bar-fill" style="width:${p}%;background:${c};"></div></div>
+      <div class="area-bar-pct">${p}%</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---- CALENDAR ---- */
+function buildCal() {
+  document.getElementById('cal-weekdays').innerHTML = dayNames.map(d=>`<div class="cal-weekday">${d}</div>`).join('');
+  renderCal();
+  document.getElementById('cal-prev').onclick=()=>{ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCal(); };
+  document.getElementById('cal-next').onclick=()=>{ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCal(); };
+}
+
+function renderCal() {
+  document.getElementById('cal-month-label').textContent = monthNames[calMonth]+' '+calYear;
+  const first=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  let html='';
+  for(let i=0;i<first;i++){
+    const d=new Date(calYear,calMonth,0-(first-1-i));
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${d.getDate()}</div></div>`;
+  }
+  for(let d=1;d<=daysInMonth;d++){
+    const dt=new Date(calYear,calMonth,d);
+    const isToday=dt.toDateString()===today.toDateString();
+    const isSel=dt.toDateString()===selDate.toDateString();
+    const evs=state.events[dt.toDateString()]||[];
+    html+=`<div class="cal-day${isToday?' today':''}${isSel?' selected':''}" data-date="${dt.toDateString()}">
+      <div class="cal-day-num">${d}</div>
+      ${evs.length?`<div class="cal-dots">${evs.slice(0,3).map(e=>`<div class="cal-dot-ev" style="background:${e.color};"></div>`).join('')}</div>`:''}
+    </div>`;
+  }
+  document.getElementById('cal-days').innerHTML=html;
+  document.querySelectorAll('.cal-day[data-date]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      selDate=new Date(el.dataset.date);
+      renderCal();
+      renderCalView();
+    });
+  });
+}
+
+function renderCalView() {
+  document.getElementById('cal-sel-label').textContent = selDate.toDateString()===today.toDateString() ? 'Hoje' : fmt12(selDate);
+  const evs=state.events[selDate.toDateString()]||[];
+  const el=document.getElementById('cal-events');
+  if(!evs.length){ el.innerHTML='<div style="font-size:13px;color:var(--on-surface-var);padding:8px 0;">Nenhum evento neste dia.</div>'; return; }
+  el.innerHTML=evs.map(e=>`
+    <div class="event-item">
+      <div class="event-time">${e.time}</div>
+      <div class="event-stripe" style="background:${e.color};"></div>
+      <div><div class="event-name">${e.title}</div>${e.loc?`<div class="event-loc">${e.loc}</div>`:''}</div>
+    </div>`).join('');
+}
+
+/* ---- INTERACTIONS ---- */
+function setupInteractions() {
+  // Add task
+  document.getElementById('open-add-task').onclick=()=>{ document.getElementById('inline-task-form').classList.add('open'); setTimeout(()=>document.getElementById('new-task-text').focus(),50); };
+  document.getElementById('cancel-task-form').onclick=()=>{ document.getElementById('inline-task-form').classList.remove('open'); };
+  document.getElementById('save-task-btn').onclick=()=>{
+    const txt=document.getElementById('new-task-text').value.trim();
+    if(!txt) return;
+    state.tasks.unshift({ id:state.nextId++, text:txt, priority:document.getElementById('new-task-priority').value, project:document.getElementById('new-task-proj').value||'Geral', done:false });
+    document.getElementById('new-task-text').value='';
+    document.getElementById('new-task-proj').value='';
+    document.getElementById('inline-task-form').classList.remove('open');
+    renderAll();
+  };
+  document.getElementById('new-task-text').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('save-task-btn').click(); });
+
+  // Quick add
+  document.getElementById('quick-add-btn').onclick=()=>{ switchSection('tasks'); setTimeout(()=>{ document.getElementById('open-add-task').click(); },200); };
+
+  // Add event
+  document.getElementById('add-event-btn').onclick=()=>document.getElementById('event-modal').classList.add('open');
+  document.getElementById('close-event-modal').onclick=()=>document.getElementById('event-modal').classList.remove('open');
+  document.getElementById('event-modal').addEventListener('click',e=>{ if(e.target===document.getElementById('event-modal')) document.getElementById('event-modal').classList.remove('open'); });
+  document.getElementById('save-event-btn').onclick=()=>{
+    const title=document.getElementById('ev-title').value.trim();
+    if(!title) return;
+    const key=selDate.toDateString();
+    if(!state.events[key]) state.events[key]=[];
+    state.events[key].push({ title, time:document.getElementById('ev-time').value, color:document.getElementById('ev-color').value, loc:document.getElementById('ev-loc').value });
+    state.events[key].sort((a,b)=>a.time.localeCompare(b.time));
+    document.getElementById('ev-title').value='';
+    document.getElementById('ev-loc').value='';
+    document.getElementById('event-modal').classList.remove('open');
+    renderCal();
+    renderCalView();
+    renderHome();
+  };
+
+  // Focus buttons
+  document.querySelectorAll('.focus-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const h=parseFloat(btn.dataset.h);
+      state.todayFocus+=h;
+      const tidx=(today.getDay()+6)%7;
+      state.focusHours[tidx]=+(state.focusHours[tidx]+h).toFixed(1);
+      renderAll();
+      animateBars();
+    });
+  });
+}
+
+init();
+</script>
+</body>
+</html>
